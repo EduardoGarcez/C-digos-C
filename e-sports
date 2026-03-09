@@ -1,0 +1,501 @@
+/*
+Os torneios de e-sports são bastante dinâmicos e a atualização de pontuação dos jogadores é um gargalo, pois precisa de uma estrutura de dados que forneça pesquisa em tempo hábil, o que não se obtem com estruturas lineares. Assim ao desenvolver um sistema para gerenciar o ranking de um torneio de e-sports opta-se por uma ABB.
+
+O sistema deve ser capaz de:
+
+1. Registrar jogadores com suas pontuações iniciais
+2. Atualizar pontuações após cada partida
+3. Consultar a posição de um jogador no ranking
+4. Listar jogadores em uma faixa de pontuação
+5. Encontrar o jogador com maior/menor pontuação
+6. Contar quantos jogadores estão acima/abaixo de uma pontuação
+Os dados serão organizados em uma ABB por pontuação (não por ID do jogador):
+- Chave: Pontuação do jogador
+- Valor: ID do jogador
+Entrada
+A primeira linha contém um inteiro N (1 ≤ N ≤ 1000), o número de operações.
+As próximas N linhas contêm operações no formato:
+- REGISTER id pontuacao: Registra jogador com ID e pontuação inicial
+- UPDATE id nova_pontuacao: Atualiza pontuação do jogador
+- POSITION id: Consulta posição do jogador no ranking (1 = melhor) (desempate: último daquela posição)
+- RANGE min max: Lista IDs dos jogadores com pontuação entre min e max
+- TOP: Retorna ID do jogador com maior pontuação (desempate: último maior valor inserido)
+- BOTTOM: Retorna ID do jogador com menor pontuação (desempate: último menor valor inserido)
+- COUNT_ABOVE pontuacao: Conta jogadores com pontuação > valor
+- COUNT_BELOW pontuacao: Conta jogadores com pontuação < valor
+Saída
+Para cada operação, imprima:
+- REGISTER: Nenhuma saída
+- UPDATE: Nenhuma saída
+- POSITION id: Posição do jogador (1-indexada) ou NOT_FOUND
+- RANGE min max: IDs em ordem decrescente de pontuação, ou EMPTY
+- TOP: ID do melhor jogador ou EMPTY
+- BOTTOM: ID do pior jogador ou EMPTY
+- COUNT_ABOVE: Número de jogadores acima da pontuação
+- COUNT_BELOW: Número de jogadores abaixo da pontuação
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct no
+{
+    int id;
+    int pontos;
+    struct no*pai;
+    struct no *dir;
+    struct no *esq;
+};
+typedef struct no No;
+
+No *cria_no(int id, int pont)
+
+{
+
+    No *novo = malloc(sizeof(No));
+
+    novo->id = id;
+    novo->pontos = pont;
+    novo->pai=NULL;
+    novo->dir = novo->esq = NULL;
+    return novo;
+}
+
+No *insere_no(No *raiz, int id, int pont)
+
+{
+
+    No *pai_aux = NULL;
+
+    No *aux = NULL;
+
+    No *nova = cria_no(id, pont);
+
+    if (raiz == NULL)
+
+        raiz = nova;
+
+    else
+
+    {
+
+        aux = raiz;
+
+        while (aux != NULL)
+
+        {
+
+            pai_aux = aux;
+
+            if (pont <= aux->pontos)
+
+                aux = aux->esq;
+
+            else
+
+                aux = aux->dir;
+        }
+
+        if (pont <= pai_aux->pontos)
+
+            pai_aux->esq = nova;
+
+        else
+
+            pai_aux->dir = nova;
+    }
+
+    return raiz;
+}
+
+void em_ordem(No *raiz)
+
+{
+    if (raiz != NULL)
+    {
+        em_ordem(raiz->esq);
+
+        em_ordem(raiz->dir);
+    }
+}
+No *REGISTER(No *raiz, int id, int pontos)
+{
+    raiz = insere_no(raiz, id, pontos);
+    return raiz;
+}
+No* sucessor(No *no_remover)
+{
+
+    // por sucessor
+    No *suc = no_remover->dir;
+
+    while (suc->esq != NULL)
+    {
+        suc = suc->esq;
+    }
+
+    return suc;
+}
+
+No* antecessor(No *no_remover)
+{
+
+    // por sucessor
+    No *ant = no_remover->esq;
+
+    while (ant->dir != NULL)
+    {
+        ant = ant->dir;
+    }
+
+    return ant;
+}
+No *remove_noavl(No *raiz, int chave)
+{
+
+    No *no_remover = raiz;
+    No *pai_no_remover = NULL;
+    No *copia = NULL;
+
+    while (no_remover != NULL && no_remover->id != chave)
+    {
+        if (no_remover->id < chave)
+            no_remover = no_remover->dir;
+        else
+            no_remover = no_remover->esq;
+    }
+
+    while (no_remover != NULL) // encontrou o valor a ser removido
+    {
+        if (no_remover->esq == NULL && no_remover->dir == NULL)//eh folha
+        {
+            if (raiz == no_remover)
+            {
+                free(raiz);
+                no_remover = raiz = NULL;
+            }
+            else
+            {
+                if (no_remover->pai->esq->id == chave)
+                no_remover->pai->esq = NULL;
+                else
+                no_remover->pai->dir = NULL;
+
+                free(no_remover);
+                no_remover = NULL;
+            }
+        }
+        else // tem um filho ou dois filhos
+        {
+
+            if (no_remover->dir != NULL)
+                copia = sucessor(no_remover);
+            else
+                copia = antecessor(no_remover);
+
+                //substitui o valor da ser removido pelo valor
+                //do sucessor ou do antecessor
+            no_remover->id = copia->id;
+            //muda o no a ser removido para o sucessor ou antecessor
+            no_remover = copia;
+            chave = copia->id;
+        }
+        
+    }
+    return raiz;
+}
+No* UPDATE(No *raiz, int id, int pontos)
+{
+    No *aux = raiz;
+    No*aux_pai= raiz;
+    while (aux != NULL && aux->id != id)
+    {
+        if (pontos < aux->pontos)
+        {
+            aux_pai= aux;
+            aux = aux->esq;
+        }
+        else
+        {
+            aux_pai= aux;
+            aux = aux->dir;
+        }
+    }
+    if (raiz != NULL && aux!=NULL && aux->id == id)
+    {
+        raiz=remove_noavl(aux,id);
+        raiz=insere_no(raiz,id,pontos);
+    }
+    else
+    {
+        raiz=remove_noavl(aux_pai,id);
+        raiz=insere_no(raiz,id,pontos);
+    }
+    return raiz;
+}
+void POSITION(No *raiz, int id, int pontos, int *i, int vet[])
+{
+    if (raiz != NULL)
+    {
+        POSITION(raiz->esq, id, pontos, i, vet);
+        if (raiz != NULL)
+        {
+            (*i)++;
+            vet[*i] = raiz->id;
+        }
+        POSITION(raiz->dir, id, pontos, i, vet);
+    }
+}
+No *TOP(No *raiz, int id, int pontos)
+{
+    No *aux = raiz;
+    No *aux_pai = raiz;
+    while (aux != NULL)
+    {
+        aux_pai = aux;
+        aux = aux->dir;
+    }
+    return aux_pai;
+}
+No *BOTTOM(No *raiz, int id, int pontos)
+{
+    No *aux = raiz;
+    No *aux_pai = raiz;
+    while (aux != NULL)
+    {
+        aux_pai = aux;
+        aux = aux->esq;
+    }
+    return aux_pai;
+}
+void COUNT_ABOVE(No *raiz, int *i, int vet[])
+{
+    if (raiz != NULL)
+    {
+        COUNT_ABOVE(raiz->esq, i, vet);
+        if (raiz != NULL)
+        {
+            (*i)++;
+            vet[*i] = raiz->pontos;
+        }
+        COUNT_ABOVE(raiz->dir, i, vet);
+    }
+}
+int COUNT_BELOW(No *raiz, int id, int pontos)
+{
+    No *aux = raiz;
+    int cont = 0;
+    while (aux != NULL && aux->pontos != pontos)
+    {
+        if (pontos < aux->pontos)
+            aux = aux->esq;
+        else
+            aux = aux->dir;
+    }
+    aux = aux->esq;
+    while (aux != NULL)
+    {
+        if (pontos < aux->pontos)
+        {
+            aux = aux->esq;
+            cont++;
+        }
+        else
+        {
+            aux = aux->dir;
+            cont++;
+        }
+    }
+    return cont;
+}
+void RANGE(No *raiz, int min, int max, int vet_id[], int vet_pts[], int *i)
+{
+    if (raiz != NULL)
+    {
+        RANGE(raiz->esq, min, max, vet_id, vet_pts, i);
+        if (raiz != NULL)
+        {
+            (*i)++;
+            vet_id[*i] = raiz->id;
+            vet_pts[*i] = raiz->pontos;
+        }
+        RANGE(raiz->dir, min, max, vet_id, vet_pts, i);
+    }
+}
+int main()
+{
+    int n = 0;
+    int cont = 0;
+    int id = 0;
+    int pontos = 0;
+    char comando[100];
+    int vet_range_pont[100];
+    int vet_range_id[100];
+    No *raiz = NULL;
+    int posicao = -1;
+    No *melhor = NULL;
+    int range1 = 0;
+    int range2 = 0;
+    scanf("%i", &n);
+    int num = 0;
+    while (cont < n)
+    {
+        getchar();
+        scanf("%s", comando);
+        if (strcmp(comando, "REGISTER") == 0)
+        {
+            scanf("%i %i", &id, &pontos);
+            raiz = REGISTER(raiz, id, pontos);
+        }
+        else if (strcmp(comando, "UPDATE") == 0)
+        {
+            scanf("%i %i", &id, &pontos);
+            raiz=UPDATE(raiz, id, pontos);
+        }
+        else if (strcmp(comando, "POSITION") == 0)
+        {
+            scanf("%i", &id);
+            int vet[1000];
+
+            POSITION(raiz, id, pontos, &posicao, vet);
+            int j = posicao;
+            int resp = 1;
+            while (raiz!=NULL && vet[j] != id)
+            {
+                j--;
+                resp++;
+            }
+            if(j!=-1)
+                printf("%i\n", resp);
+            else
+                printf("NOT_FOUND\n");
+            j = 0;
+            while (j < posicao)
+            {
+                vet[j] = 0;
+                j++;
+            }
+            posicao = -1;
+        }
+        else if (strcmp(comando, "TOP") == 0)
+        {
+            melhor = TOP(raiz, id, pontos);
+            if (melhor == NULL)
+                printf("EMPTY\n");
+            else
+                printf("%i\n", melhor->id);
+        }
+        else if (strcmp(comando, "BOTTOM") == 0)
+        {
+            melhor = BOTTOM(raiz, id, pontos);
+            if (melhor == NULL)
+                printf("EMPTY\n");
+            else
+                printf("%i\n", melhor->id);
+        }
+        else if (strcmp(comando, "COUNT_ABOVE") == 0)
+        {
+            scanf("%i", &pontos);
+            int vet_above[100];
+            int i_ab = -1;
+            int cont_above =0;
+            if (raiz != NULL)
+            {
+                COUNT_ABOVE(raiz, &i_ab, vet_above);
+                while (vet_above[i_ab] >= pontos)
+                {
+                    if(vet_above[i_ab] == pontos)
+                    {
+                        i_ab--;
+                    }
+                    else
+                    {
+                       cont_above++;
+                        i_ab--;  
+                    }
+                   
+                }
+                printf("%i\n", cont_above);
+            }
+            else
+            {
+                printf("0\n");
+            }
+            
+        }
+        else if (strcmp(comando, "COUNT_BELOW") == 0)
+        {
+            scanf("%i", &pontos);
+            int vet_below[100];
+            int i_bl = -1;
+            if (raiz != NULL)
+            {
+                int cont2=0;
+                COUNT_ABOVE(raiz, &i_bl, vet_below);
+                i_bl=0;
+                while (vet_below[i_bl] <= pontos)
+                {
+                    if(vet_below[i_bl] == pontos)
+                    {
+                        i_bl++;
+                    }
+                    else
+                    {
+                       cont2++;
+                        i_bl++; 
+                    }
+                }
+                printf("%i\n",cont2);
+            }
+            else
+            {
+                printf("0\n");
+            }
+        }
+        else if (strcmp(comando, "RANGE") == 0)
+        {
+
+            int k = -1;
+            scanf("%i %i", &range1, &range2);
+            if (raiz != NULL)
+            {
+                RANGE(raiz, range1, range2, vet_range_id, vet_range_pont, &k);
+                int l = k;
+                if(range1!=range2)
+                {
+                    while (vet_range_pont[l] > range2) // maior
+                    {
+                        l--;
+                    }
+                    while (vet_range_pont[l] >= range1 && 0 < l)
+                    {
+                        printf("%i ", vet_range_id[l]);
+                        l--;
+                    }
+                    printf("\n");
+                }
+                else
+                {
+                    while(vet_range_pont[l]!=range1)//ACHAR IGUAL
+                    {
+                        l--;
+                    }
+                    
+                    while(vet_range_pont[l]==range1)//PRINTAR OS IGUAIS
+                    {
+                        printf("%i ", vet_range_id[l]);
+                        l--;
+                    }
+                    printf("\n");
+                }
+            }
+            else
+            {
+                printf("EMPTY\n");
+            }
+        }
+        cont++;
+    }
+    return 0;
+}
+
