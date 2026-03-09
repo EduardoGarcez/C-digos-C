@@ -1,0 +1,167 @@
+/*
+O uso de pilhas é comum para determinar a corretude da parentização de uma expressão.Dada uma expressão, 
+mostre uma mensagem informando se a parentização da expressão está correta ou incorreta, sem se importar com o restante da expressão. 
+Resumindo, todos os parênteses de fechamento devem ter um parêntese de abertura e  não é possível fechar um parentêse sem antes abrir um 
+parêntese, e a quantidade de parênteses de fechamento e abertura deve ser a mesma. Observação, a solução deve ser construída com uma pilha.
+
+Entrada
+A primeira linha da entrada contém N (1 <= N <= 10000), que é a quantidade de casos de teste. A seguir há N linhas de casos de teste, 
+que são expressões parentizadas, cada uma com até 1000 caracteres, sem espaços. 
+
+Saída
+A saída deve ser correta ou incorreta seguida de \n' para cada caso de teste de acordo com as regras acima.
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct no
+
+{
+
+    int info;
+
+    struct no *prox;
+
+};
+
+typedef struct no No;
+
+
+
+No *cria_no(int valor)
+
+{
+
+    No *novo = malloc(sizeof(No));
+
+    novo->info = valor;
+
+    novo->prox = NULL;
+
+    return novo;
+
+}
+No *insere_inicio(No *inicio, char valor)
+
+{
+
+    No *novo = cria_no(valor);
+
+    if (inicio == NULL)
+
+        inicio = novo;
+
+    else
+
+    {
+
+        novo->prox = inicio;
+
+        inicio = novo;
+
+    }
+
+    return inicio;
+
+}
+int remove_inicio(No **L,int flag )
+
+{
+    No *rem = NULL;
+
+    if (*L == NULL)
+    {
+        flag=-1;
+        return flag;
+    }
+    else
+
+    {
+
+        rem = *L;
+        *L = (*L)->prox;
+        rem->prox = NULL;
+        return flag;
+    }
+
+}
+No *libera_lista(No *L)
+{
+    No *aux = L;
+
+    while (aux != NULL)
+
+    {
+        L = L->prox;
+        free(aux);
+        aux = L;
+    }
+    return NULL;
+}
+void mostra_lista(No *L)
+
+{
+
+    while (L != NULL)
+
+    {
+
+        printf("%d ", L->info);
+
+        L = L->prox;
+
+    }
+
+}
+int main ()
+{
+    int num =0;
+    int cont=0;
+    int i=0;
+    char letra = ' ';
+    char expressao[1000];
+    int flag =0;
+    No*L=NULL;
+    scanf("%i",&num);
+  
+    while(cont<num)
+    {
+        scanf("%s",expressao);
+        while(letra!='\0' && flag == 0)// WHILE ATÉ CHEGAR NO FINAL DA EXPRESSAO
+        {
+            letra= expressao[i];//ENCONTRAR (
+            if(letra=='(')//CASO HAVER (
+            {
+                L = insere_inicio(L,letra);
+            }
+            if(letra==')')// SE ENCONTRAR ), REMOVER
+            {
+                flag = remove_inicio(&L,flag);
+            }   
+            i++;           
+        }
+        if(flag != 0)
+        {
+            printf("incorreta\n");
+        }
+        else if(letra =='\0' && L!=NULL)
+        {
+            printf("incorreta\n");
+        }
+        else if(L!= NULL)
+        {
+            printf("incorreta\n");
+        }
+        else
+        {
+            printf("correta\n");  
+        }
+        L= libera_lista(L);
+        i=0;
+        flag=0;
+        cont++;
+        letra=' ';
+    }
+    return 0;
+
+}
