@@ -1,0 +1,70 @@
+/*
+Verifique se um dado grafo direcionado e valorado é completo ou não.
+
+Entrada 
+
+a primeira linha contem o número de vértices N, seguida de N linhas com N valores que representam os pesos das arestas
+
+sendo -1 a indicação de inexistencia da aresta
+
+Saída
+
+A saída é constituída por uma única linha contendo a palavra sim ou nao seguida do final de linha.
+*/
+
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+#include <stdlib.h>
+
+ int main()
+ {
+    int matriz[100][100];
+
+    int tam =0 ;
+    int num =0;
+    int j=0;
+    scanf("%i",&tam);
+
+    //LER MATRIZ
+    for(int i=0; i<tam; i++)
+    {
+        for(j=0;j<tam;j++)
+        {
+            scanf("%i",&num);
+            matriz[i][j]= num; 
+        }
+            
+    }
+    int cont =0;
+    int cont_Aux=0;
+    int resp =1;
+
+    //VERIFICAR MATRIZ SE É COMPLETA
+    for(int i=0 ;i<tam; i++)
+    {
+        cont =0;
+        for(int j = 0;j<tam;j++)
+        {
+            if(matriz[i][j]!=-1)
+                cont++;
+        }
+        if(i == 0)
+            cont_Aux = cont;
+        else
+        {
+            if(cont_Aux == cont)
+                cont_Aux = cont;
+            else
+            {
+                resp = - 1;
+                i =tam + 1;
+            }
+        }
+    }
+    if(resp == -1 )
+        printf("\nnao");
+    else
+        printf("\nsim");
+    return 0;
+ }
