@@ -1,0 +1,406 @@
+/*
+
+Remoção em AVL se divide em duas partes:
+
+Em primeiro lugar, a remoção de um nó qualquer é substituída pela remoção de uma folha (remoção por cópia). Para tanto, existem 3 casos possíveis:
+
+o nó tem grau zero e, portanto, já é uma folha;
+
+o nó tem grau um – pela propriedade AVL, a sua única subárvore é necessariamente constituída por uma folha, cujo valor é copiado para o nó pai; o nó a ser eliminado é a folha da subárvore;
+
+o nó tem grau dois – o seu valor é substituído pelo maior valor contido na sua subárvore esquerda (ou o menor valor contido na sua subárvore direita); o nó que continha o menor (ou maior) valor copiado tem necessariamente grau zero ou um, recaindo num dos casos anteriores.
+
+A Figura 1 mostra esses tres casos: 
+
+Assim, efetua-se a remoção da folha (os tres casos se resumem a remover uma folha) e passa-se a segunda parte: a análise do balancemento.
+
+Nos três casos, identificar o nó que pode ficar desbalanceado (candidato ao desbalanceamento) é necessário. Na sequencia, realiza-se o recalculo do FB após a remoção.
+Então, se verifica a necessidade ou não de rotações e as realiza-se conforme a necessidade.
+A Figura 2 mostra exemplos de remoção em AVL com necessidade de rotação
+Neste exercício, realize a implementação da remoção AVL (sem o recalculo final do FB após a rotações)
+
+Entrada
+A primeira linha contém dois inteiros N e V:
+•N (1 ≤ N ≤ 100): número de elementos para construir a árvore inicial
+•V (1 ≤ V ≤ 1000): valor único a ser removido (sempre existe na árvore)
+A segunda linha contém N inteiros distintos (1 ≤ valor ≤ 1000) para construir a árvore inicial.
+Saída
+Imprima uma linha contendo:
+•O percurso in-ordem da árvore após a remoção do valor V
+•Se a árvore ficar vazia, imprima EMPTY
+
+*/
+#define TAM 10
+#include <stdio.h>
+#include <stdlib.h>
+
+struct noavl
+{
+    int chave;
+    struct noavl *esq;
+    struct noavl *dir;
+    struct noavl * pai; //pai do no
+    int fb; //fator de balanceamento
+};
+
+typedef struct noavl Noavl;
+
+Noavl *insere_noavl(Noavl *raiz, int chave);
+void em_ordem(Noavl* raiz);
+Noavl *cria_noavl(int nova_chave)
+{
+    Noavl *novo = malloc(sizeof(Noavl));
+    novo->chave = nova_chave;
+    novo->dir = novo->esq = NULL;
+    novo->fb = 0;
+    novo->pai = NULL;
+    return novo;
+}
+
+// raiz = liga_no(raiz, nova_chave, &candidato)
+
+Noavl *liga_no(Noavl *raiz, int nova_chave, Noavl **candidato)
+{
+    Noavl *pai_aux = NULL;
+    Noavl *aux = NULL;
+    Noavl *nova = cria_noavl(nova_chave);
+    if (raiz == NULL)
+        raiz = nova;
+    else
+    {
+        aux = raiz;
+        while (aux != NULL)
+        {
+            pai_aux = aux;
+
+            if (aux->fb != 0)
+                *candidato = aux;
+
+            if (nova_chave < aux->chave)
+                aux = aux->esq;
+            else
+                aux = aux->dir;
+        }
+        if (nova_chave < pai_aux->chave)
+            pai_aux->esq = nova;
+        else
+            pai_aux->dir = nova;
+        nova->pai = pai_aux;
+    }
+    return raiz;
+}
+
+void recalcula_fb(Noavl *candidato, int nova_chave)
+{
+    if (candidato != NULL) // verificar se o candidato começa na raiz ou em nulo
+    {
+        while (candidato!=NULL && candidato->chave != nova_chave)
+        {
+            if (candidato!=NULL &&  nova_chave < candidato->chave)
+            {
+                candidato->fb++;
+                candidato = candidato->esq;
+            }
+            else
+            {
+                candidato->fb--;
+                candidato = candidato->dir;
+            }
+        }
+    }
+}
+
+Noavl *rotacao_esq(Noavl *desbal)
+{
+    Noavl *filho = desbal->dir;
+    Noavl *neto = filho->esq;
+    filho->esq = desbal;
+    desbal->dir = neto;
+    // atualizar o campo pai
+    if (neto != NULL)
+        neto->pai = desbal;
+
+    filho->pai = desbal->pai;
+    desbal->pai = filho;
+
+    desbal->fb = filho->fb = 0;
+    return filho;
+}
+
+Noavl *rotacao_dir(Noavl *desbal)
+{
+
+    Noavl *filho = desbal->esq;
+    Noavl *neto = filho->dir;
+    filho->dir = desbal;
+    desbal->esq = neto;
+    // atualizar o campo pai
+    if (neto != NULL)
+        neto->pai = desbal;
+    filho->pai = desbal->pai;
+    desbal->pai = filho;
+
+    // recalculo fb
+    desbal->fb = filho->fb = 0;
+    return filho;
+}
+
+Noavl *rotacao_esq_dir(Noavl *desbal)
+{
+    Noavl *filho = desbal->esq;
+    Noavl *neto = filho->dir;
+    Noavl *nova_raiz_subarvore;
+
+    desbal->esq = rotacao_esq(filho);
+    nova_raiz_subarvore = rotacao_dir(desbal);
+
+    // acertar pai dos nós
+
+    if (neto->fb > 0) // inseriu na esq do neto
+    {
+
+        desbal->fb = -1;
+        neto->fb = filho->fb = 0;
+    }
+    else
+    {
+        if (neto->fb < 0) // inseriu na dir do neto
+        {
+            filho->fb = 1;
+            neto->fb = desbal->fb = 0;
+        }
+        if (neto->fb == 0)
+        {
+            desbal->fb = filho->fb = 0;
+        }
+    }
+    return nova_raiz_subarvore;
+}
+
+Noavl *rotacao_dir_esq(Noavl *desbal)
+{
+    Noavl *filho = desbal->dir;
+    Noavl *neto = filho->esq;
+    Noavl *nova_raiz_subarvore = NULL;
+
+    desbal->dir = rotacao_dir(filho);
+    nova_raiz_subarvore = rotacao_esq(desbal);
+
+    if (neto->fb > 0)
+    {
+        filho->fb = neto->fb = 0;
+        desbal->fb = 1;
+    }
+    else
+    {
+        if (neto->fb < 0)
+        {
+            desbal->fb = neto->fb = 0;
+            filho->fb = -1;
+        }
+        else
+        {
+            desbal->fb = filho->fb = 0;
+        }
+    }
+    return nova_raiz_subarvore;
+}
+
+// if (candidato->fb == -2 || candidatao->fb == +2)
+
+Noavl *rotacao_geral(Noavl *desbal)
+{
+    Noavl *nova_raiz_subarvore;
+    if (desbal->fb == 2)
+    {
+        if (desbal->esq->fb == -1)
+            nova_raiz_subarvore = rotacao_esq_dir(desbal);
+        else
+            nova_raiz_subarvore = rotacao_dir(desbal);
+    }
+    else // -2
+    {
+        if (desbal->dir->fb == 1)
+            nova_raiz_subarvore = rotacao_dir_esq(desbal);
+        else
+            nova_raiz_subarvore = rotacao_esq(desbal);
+    }
+
+    return nova_raiz_subarvore;
+}
+
+void em_ordem(Noavl *raiz)
+{
+    if (raiz != NULL)
+    {
+        em_ordem(raiz->esq);
+        printf("%d (%d) ", raiz->chave,raiz->fb);
+        em_ordem(raiz->dir);
+    }
+}
+
+Noavl *insere_noavl(Noavl *raiz, int chave)
+{
+
+    Noavl *candidato = raiz;
+    if (raiz == NULL)
+    {
+        raiz = cria_noavl(chave);
+    }
+    else
+    {
+        raiz = liga_no(raiz, chave, &candidato);
+        recalcula_fb(raiz, chave);
+        if (candidato->fb == 2 || candidato->fb == -2)
+            if (candidato->pai == NULL)
+                raiz = rotacao_geral(candidato);
+            else
+            {
+                if (candidato->pai->esq == candidato)
+                {
+                    candidato->pai->esq = rotacao_geral(candidato);
+                }
+                else
+                {
+                    candidato->pai->dir = rotacao_geral(candidato);
+                }
+            }
+    }
+    return raiz;
+}
+
+
+Noavl* sucessor(Noavl *no_remover)
+{
+
+    // por sucessor
+    Noavl *suc = no_remover->dir;
+
+    while (suc->esq != NULL)
+    {
+        suc = suc->esq;
+    }
+
+    return suc;
+}
+
+Noavl* antecessor(Noavl *no_remover)
+{
+
+    // por sucessor
+    Noavl *ant = no_remover->esq;
+
+    while (ant->dir != NULL)
+    {
+        ant = ant->dir;
+    }
+
+    return ant;
+}
+Noavl *remove_noavl(Noavl *raiz, int chave,Noavl**cand)
+{
+
+    Noavl *no_remover = raiz;
+    Noavl *pai_no_remover = NULL;
+    Noavl *copia = NULL;
+
+    while (no_remover != NULL && no_remover->chave != chave)
+    {
+        if (no_remover->chave < chave)
+            no_remover = no_remover->dir;
+        else
+            no_remover = no_remover->esq;
+    }
+
+    while (no_remover != NULL) // encontrou o valor a ser removido
+    {
+        if (no_remover->esq == NULL && no_remover->dir == NULL)//eh folha
+        {
+            if (raiz == no_remover)
+            {
+                free(raiz);
+                no_remover = raiz = NULL;
+            }
+            else
+            {
+                if (no_remover->pai->esq->chave == chave)
+                no_remover->pai->esq = NULL;
+                else
+                no_remover->pai->dir = NULL;
+
+                free(no_remover);
+                no_remover = NULL;
+            }
+        }
+        else // tem um filho ou dois filhos
+        {
+
+            if (no_remover->dir != NULL)
+                copia = sucessor(no_remover);
+            else
+                copia = antecessor(no_remover);
+
+                //substitui o valor da ser removido pelo valor
+                //do sucessor ou do antecessor
+            no_remover->chave = copia->chave;
+            
+            //muda o no a ser removido para o sucessor ou antecessor
+            *cand=no_remover;
+            no_remover = copia;
+            chave = copia->chave;
+        }
+        
+    }
+    return raiz;
+}
+Noavl* candidato(Noavl*raiz,int valor)
+{
+    Noavl *aux =raiz;
+    Noavl * aux_pai=raiz;
+    if(raiz!=NULL)
+    {
+        while(aux!=NULL && aux->chave !=valor)
+        {
+            aux_pai = aux;
+            if(aux->chave>valor)
+                aux=aux->esq;
+            else
+                aux=aux->dir;
+        }    
+    }
+    return aux_pai;
+}
+int main()
+{
+    int num=0;
+    int valor=0;
+    int cont=0;
+    int chave=0;
+
+    Noavl *raiz=NULL;
+    Noavl *cand = NULL;
+
+    scanf("%i",&num);
+     
+    scanf("%i",&valor);
+    while(cont<num)
+    {
+        scanf("%i",&chave);
+        raiz = insere_noavl(raiz,chave);
+        cont++;
+    }
+    
+    cand =candidato(raiz,valor); 
+    raiz = remove_noavl(raiz,valor,&cand);
+    if(cand->dir==NULL)
+        cand->fb++;
+    else
+        cand->fb--;
+    if(cand!=NULL && cand->fb == 2 || cand!=NULL && cand->fb == -2)
+        raiz=rotacao_geral(cand);
+    if(raiz!=NULL)
+        em_ordem(raiz);
+    else
+        printf("EMPTY");
+    return 0;
+ }
