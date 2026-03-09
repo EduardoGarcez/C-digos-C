@@ -1,0 +1,181 @@
+/*
+Conversor para Binário
+
+
+
+    Crie um programa que receba um número inteiro positivo no formato decimal e mostre esse valor convertido para o formato binário, 
+    usando uma pilha.
+
+
+
+Entrada
+
+    A primeira linha contém a quantidade de números que serão convertidos N, seguida de N linhas com os valores a serem convertidos.
+
+
+
+Saída
+
+    Para cada número lido mostre o seu valor em binário em uma linha.
+
+Exemplo de entrada:
+
+3
+
+13
+
+8
+
+5
+
+
+
+Exemplo de saída: (de acordo com a entrada anterior)
+
+1101
+
+1000
+
+101
+
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct no
+
+{
+
+    int info;
+
+    struct no *prox;
+
+};
+
+typedef struct no No;
+
+
+
+No *cria_no(int valor)
+
+{
+
+    No *novo = malloc(sizeof(No));
+
+    novo->info = valor;
+
+    novo->prox = NULL;
+
+    return novo;
+
+}
+No *insere_inicio(No *inicio, char valor)
+
+{
+
+    No *novo = cria_no(valor);
+
+    if (inicio == NULL)
+
+        inicio = novo;
+
+    else
+
+    {
+
+        novo->prox = inicio;
+
+        inicio = novo;
+
+    }
+
+    return inicio;
+
+}
+int remove_inicio(No **L)
+
+{
+    No *rem = NULL;
+
+    if (*L == NULL)
+    {
+        int flag=-1;
+        return flag;
+    }
+    else
+    {
+        rem = *L;
+        *L = (*L)->prox;
+        rem->prox = NULL;
+        return rem->info;
+    }
+}
+No *libera_lista(No *L)
+{
+    No *aux = L;
+
+    while (aux != NULL)
+
+    {
+        L = L->prox;
+        free(aux);
+        aux = L;
+    }
+    return NULL;
+}
+void mostra_lista(No *L)
+{
+    while (L != NULL)
+    {
+        printf("%i",L->info);
+        L = L->prox;
+    }
+}
+No* funcao_recursao(No*L,int valor)
+{
+    int resultado =0;
+    int valor_pilha =0;
+    resultado = valor/2;
+    if (resultado == 0)
+    {
+        L=insere_inicio(L,1);
+    }
+    else
+    {
+        L=funcao_recursao(L,resultado);
+        valor_pilha= valor%2;
+        L = insere_inicio(L,valor_pilha);
+    }
+    return L;
+}
+void inverte_pilha(No*L)
+{
+    No *aux =NULL;
+    int valor =0;
+    while(L!=NULL)
+    {
+        valor=remove_inicio(&L);
+        if(valor!=-1)
+        aux = insere_inicio(aux,valor);
+    }
+    mostra_lista(aux);
+    printf("\n");
+}
+int main ()
+{
+    No*L=NULL;
+    int num =0;
+    scanf("%i",&num);
+    int cont =0;
+    int valor =0;
+    while(cont<num)
+    {
+        scanf("%i",&valor);
+        L=funcao_recursao(L,valor);
+        inverte_pilha(L);
+        L= libera_lista(L);
+        cont++;
+    }
+    return 0;
+}
