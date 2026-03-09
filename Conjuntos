@@ -1,0 +1,380 @@
+/*
+Matematicamente, conjuntos representam a reunião de diversos objetos. Quando os elementos que formam o conjunto são números, são chamados 
+de conjuntos numéricos.
+
+É possível realizar operações com conjuntos, por exemplo, intersecção e união.
+
+Interseção de Conjuntos
+União de Conjuntos
+
+A interseção de conjuntos é formada por elementos que estão simultaneamente nos conjuntos envolvidos. Assim, considerando dois conjuntos 
+A e B, a interseção é formada por elementos que pertencem ao conjunto A e ao conjunto B. Denotamos a interseção por ∩.
+
+
+Considere os conjuntos A = {a, b, c, d, e} e B ={c, d, e, f, g}.   
+
+Para determinar a intersecção entre os dois conjuntos, devemos encontrar os elementos que pertencem a eles.
+
+A ∩ B = {c, d, e}
+
+A união de conjuntos corresponde a junção dos elementos dos conjuntos dados, ou seja, é o conjunto formado pelos elementos de um conjunto 
+mais os elementos dos outros conjuntos.
+
+Para representar a união usamos o símbolo U.
+
+Dados os conjuntos A = {c, a, r, e, t} e B = {a, e, i, o, u}
+
+Para representar a união dos conjuntos, devemos incluir todos elementos dos dois conjuntos
+
+Assim, o conjunto união será:
+
+A U B = {c, a, r, e, t, i, o, u}
+
+
+
+Conjuntos podem ser representados por listas simplesmente encadeadas
+
+Faça um programa que receba dois conjuntos de números e apresente a intersecção e a união entre os mesmos utilizando a representação em 
+lista simplesmente encadeada.
+
+Entrada
+
+A entrada inicia com os valores n e m, valores entre 0 e 30, que representam respectivamente os números de elementos dos conjuntos, na linha seguinte estão os n elementos de primeiro conjunto e na próxima linha os m elementos do segundo conjunto. Os elementos de ambos conjuntos variam entre 0 e 1000 e estão em ordem crescente. O conjunto vazio é representado por uma linha em branco (apenas `\n`
+
+Saída
+
+A primeira linha mostra os elementos da intersecção e união entre os conjuntos. Ambas linhas terminam em espaço + '\n'.
+
+Se não houver elementos para mostrar em uma linha, ela deve mostrar apenas  espaço + '\n'.
+*/
+
+#include <stdio.h>
+
+#include <stdlib.h>
+
+struct no
+
+{
+
+    int info;
+
+    struct no *prox;
+
+};
+
+typedef struct no No;
+No *cria_no(int valor)
+
+{
+
+    No *novo = malloc(sizeof(No));
+
+    novo->info = valor;
+
+    novo->prox = NULL;
+
+    return novo;
+
+}
+No *insere_inicio(No *inicio, int valor)
+
+{
+
+    No *novo = cria_no(valor);
+
+    if (inicio == NULL)
+
+        inicio = novo;
+
+    else
+
+    {
+
+        novo->prox = inicio;
+
+        inicio = novo;
+
+    }
+
+    return inicio;
+
+}
+No *insere_fim(No *L, int valor)
+
+{
+
+    No *novo = cria_no(valor);
+
+    No *aux = L;
+
+
+
+    if (L == NULL)
+
+        L = novo;
+
+    else
+
+    {
+
+        while (aux->prox != NULL)
+
+            aux = aux->prox;
+
+        aux->prox = novo;
+
+    }
+
+    return L;
+
+}
+No *remove_elemento(No **end_L, int elemento)
+
+{
+
+    No *aux, *anterior = NULL, *resposta = NULL;
+
+    if (*end_L != NULL)
+
+    {
+
+        aux = *end_L;
+
+        while (aux != NULL && aux->info != elemento)
+
+        {
+
+            anterior = aux;
+
+            aux = aux->prox;
+
+        }
+
+        if (aux != NULL)
+
+        {
+
+            if (*end_L != aux)
+
+                anterior->prox = aux->prox;
+
+            else
+
+                *end_L = aux->prox;
+
+        }
+
+        resposta = aux;
+
+    }
+
+    return resposta;
+
+}
+void mostra_lista(No *L)
+
+{
+
+    while (L != NULL)
+
+    {
+
+        printf("%d ", L->info);
+
+        L = L->prox;
+
+    }
+
+}
+No *libera_lista(No *L)
+
+{
+
+    No *aux = L;
+
+    while (aux != NULL)
+
+    {
+
+        L = L->prox;
+
+        free(aux);
+
+        aux = L;
+
+    }
+
+    return NULL;
+
+}
+No *busca_elemento(No *L, int elemento)
+
+{
+
+    while (L != NULL && elemento != L->info)
+
+        L = L->prox;
+
+    return L;
+
+}
+
+No *remove_inicio(No **L)
+
+{
+
+    No *rem = NULL;
+
+    if (*L == NULL)
+
+        return NULL;
+
+    else
+
+    {
+
+        rem = *L;
+
+        *L = (*L)->prox;
+
+        rem->prox = NULL;
+
+        return rem;
+
+    }
+
+}
+
+No *remove_fim(No **L)
+
+{
+
+    No *rem = NULL;
+
+    No *ant;
+
+    if (*L == NULL)
+
+        return NULL;
+
+    else
+
+    {
+
+        rem = *L;
+
+        while (rem->prox != NULL)
+
+        {
+
+            ant = rem;
+
+            rem = rem->prox;
+
+        }
+
+        ant->prox = NULL;
+
+        return rem;
+
+    }
+}
+void funcao_insercao(No*L1,No*L2)
+{
+    No* L_inser=NULL;
+    No* aux1 = L1;
+    No*aux2 =L2;
+
+    while(aux1!=NULL)//ATE A LISTA 1 SER LIDA COMPLETAMENTE
+    {
+        while(aux2!=NULL)//PROCURANDO ELEMENTO IGUAL
+        {
+            if(aux1->info == aux2->info)//ACHOU ELEMENTO IGUAL
+            {
+                L_inser = insere_fim(L_inser,aux1->info);
+            }
+            aux2=aux2->prox;//PROX ELEMENTO
+        }
+        aux2=L2;//VOLTA PARA O COMEÇO DA LISTA
+        aux1=aux1->prox;
+    }
+    //MOSTRAR INSERCAO
+    mostra_lista(L_inser);
+}
+
+void funcao_unicao(No*L1,No*L2)
+{
+    No* L_uni=NULL;
+    No* aux1 = L1;
+    No*aux2 =L2;
+    while(aux1!=NULL && aux2!=NULL)//PERCORRER A LISTA 1
+    {
+        
+        if(aux1->info != aux2->info)//ACHOU ELEMENTO DIFERENTE 
+        {
+            if(aux1->info < aux2->info)//INSERIR ELEM DA LISTA 1 PRIMEIRO E DEPOIS DA LISTA 2
+            {
+                L_uni = insere_fim(L_uni,aux1->info);
+                aux1=aux1->prox;
+            }
+            else
+            {
+                L_uni = insere_fim(L_uni,aux2->info);
+                aux2=aux2->prox;
+            }
+        }
+        else//CASO ELEMENTO FOR IGUAL
+        {
+            L_uni = insere_fim(L_uni,aux1->info); 
+            aux1=aux1->prox;
+            aux2=aux2->prox;
+        }
+        //CONINUAR AMBAS LISTAS
+    }
+    while(aux1!=NULL)
+    {
+        L_uni = insere_fim(L_uni,aux1->info);
+        aux1=aux1->prox;
+    }
+    while(aux2!=NULL)
+    {
+        L_uni = insere_fim(L_uni,aux2->info);
+        aux2=aux2->prox;
+    }
+    mostra_lista(L_uni);
+}
+int main ()
+{
+    
+    int m=0;
+    int n=0;
+    int valor =0;
+    int cont =0;
+    No* L1=NULL;
+    No* L2=NULL;
+
+    scanf("%i",&n);
+    scanf("%i",&m);
+
+    while (cont<n)
+    {
+        scanf("%i",&valor);
+        L1 = insere_fim(L1,valor);
+        cont++;
+    }
+    cont=0;
+    while (cont <m)
+    {
+        scanf("%i",&valor);
+        L2 = insere_fim(L2,valor);
+        cont++;
+    }
+    funcao_insercao(L1,L2);
+    printf("\n");
+    funcao_unicao(L1,L2);
+    return 0;
+}
+
+
+
+
