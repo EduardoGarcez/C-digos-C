@@ -1,0 +1,94 @@
+/*
+O Reino de Atlantis é composto por várias ilhas conectadas por pontes. O rei deseja saber quantos grupos de ilhas conectadas existem em seu reino para planejar a distribuição de recursos.
+
+Duas ilhas estão no mesmo grupo se existe um caminho de pontes entre elas (direta ou indiretamente).
+
+Entrada
+
+A primeira linha contém dois inteiros N e M (1 ≤ N ≤ 1000, 0 ≤ M ≤ 5000), onde N é o número de ilhas e M é o número de pontes.
+
+As próximas M linhas contêm dois inteiros A e B (1 ≤ A, B ≤ N), indicando que existe uma ponte entre as ilhas A e B.
+
+Saída
+
+Imprima um único inteiro: o número de grupos de ilhas conectadas.
+
+Exemplos
+*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+
+
+
+void prof (int i,int grafo[100][500], int vet[100], int n)
+{
+    vet[i]=1;
+    int j=0;
+
+    
+    for(j=0;j<n;j++)
+    {
+        if(grafo[i][j]==1)
+        {  
+            if(vet[j]==0)
+                prof(j,grafo,vet,n);
+        }
+    }
+}
+
+void funcao_busca(int grafo[100][500], int vet[100], int n)
+{
+    int i =0;
+    int j=0;
+    int cont=0;
+    for(i=0;i<n;i++)
+        vet[i]=0;
+    for(i=0;i<n;i++)
+    {
+        if(vet[i]==0)
+        {
+            prof(i,grafo,vet,n);
+            cont++;
+        }
+    }
+    printf("\n%i",cont);
+}
+
+
+ int main()
+ {
+
+    int i=0;
+    int j =0;
+    int m=0;
+    int n=0;
+    int matriz[100][500];
+    int ilha,ponte;
+    scanf("%i",&n);
+    scanf("%i",&m);
+    m;
+    n;
+    for(i=0;i<n;i++)
+    {
+        for(j=0;j<n;j++)
+        {
+            matriz[i][j] = 0;
+        }
+    }
+    int cont=0;
+    while(cont < m)
+    {
+        scanf("%i",&ilha);
+        ilha--;
+        scanf("%i",&ponte);
+        ponte--;
+        matriz[ilha][ponte]=1;
+        matriz[ponte][ilha]=1;
+        cont++;
+    }
+
+    int vet[100];
+    funcao_busca(matriz,vet,n);
+    return 0;
+ }
