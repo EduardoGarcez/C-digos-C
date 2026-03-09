@@ -1,0 +1,408 @@
+/*
+Imagine que você é o gerente de uma loja de eletrônicos e, devido a alta demanda, precisa gerenciar seu estoque de forma eficiente. 
+Para isso, todos os produtos que estão no estoque são identificados por um código único, para que se possa diferenciar cada um, 
+e uma etiqueta que informa a quantidade desse produto no estoque.
+
+A medida que novos produtos chegam e outros são vendidos é preciso atualizar o estoque e, para isso, cada produto é registrado em uma 
+lista, onde cada nó representa um produto e uma quantidade. 
+
+A cada hora essa lista é atualizada usando uma outra lista, a lista de operações.
+
+A lista de operações contém cada operação realizada com produtos, por exemplo, venda, compra. Cada nó desta é composta por um código do 
+produto, a operação realizada e a quantidade envolvida em tal operação.
+
+A sua tarefa é desenvolver um programa que processe essa lista de operações, atualizando o estoque, e determine a quantidade final de 
+cada produto envolvido nas operações após todas as operações serem realizadas.
+
+
+Input
+A entrada, inicialmente, é composta por um valor inteiro X (0 <= X <= 100) que determina quantas operações serão realizadas. Após isso, 
+serão apresentadas X linhas. cada linha terá um inteiro C, uma string P e outro inteiro Q separados por um espaço em branco. 
+A primeira informação recebida representa o código do produto, C, a segunda, P,  representa a operação e a terceira, Q, a quantidade. 
+Os códigos dos produtos podem ter valores N (1 <= N <= 100). A quantidade dos produtos pode ter valores M (0 <= M <= 1000).
+
+
+Output
+A saída deverá conter uma linha contendo o código de cada produto, seguido da quantidade em estoque do mesmo após a realização de todas 
+as operações. Em casos de o produto não estiver mais em estoque na loja, ou seja, sua quantidade no estoque for igual a 0, 
+ele não deve imprimir. A ordem dessas linhas deve ser a ordem em que os produtos apareceram na lista inicial
+
+*/
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+struct nod
+
+{
+
+    int info;
+
+    struct nod *ant, *prox;
+
+};
+
+typedef struct nod Nod;
+
+
+struct listad
+
+{
+
+    Nod* ini;
+
+    Nod* fim;
+
+};
+
+typedef struct listad Listad;
+Listad *cria_listad()
+{
+
+    Listad *L = (Listad *)malloc(sizeof(Listad));
+    L->fim = L->ini = NULL;
+    return L;
+}
+
+Nod *cria_nod(int info)
+{
+    Nod *novo = (Nod *)malloc(sizeof(Nod));
+    novo->ant = novo->prox = NULL;
+    novo->info = info;
+    return novo;
+}
+
+Listad* insere_inicio_listad(Listad *L, int info)
+{
+    Nod *novo = cria_nod(info);
+
+    if (L == NULL)
+    {
+        L = cria_listad();
+        L->ini = L->fim = novo;
+    }
+    else
+    {
+        if (L->ini == NULL)
+            L->ini = L->fim = novo;
+        else
+        {
+            novo->prox = L->ini;
+            L->ini->ant = novo;
+            L->ini = novo;
+        }
+    }
+    return L;
+}
+struct no
+
+{
+
+    int info;
+
+    struct no *prox;
+
+};
+
+typedef struct no No;
+
+
+Listad* insere_fim_listad(Listad *L, int info)
+{
+    Nod *novo = cria_nod(info);
+
+    if (L == NULL)
+    {
+        L = cria_listad();
+        L->ini = L->fim = novo;
+    }
+    else
+    {
+        if (L->ini == NULL)
+            L->ini = L->fim = novo;
+        else
+        {
+            novo->ant = L->fim;
+            L->fim->prox = novo;
+            L->fim = novo;
+        }
+    }
+    return L;
+}
+
+void mostra_listad(Listad *L)
+{
+    Nod* aux = L->ini;
+
+    while(aux != NULL)
+    {
+        printf("%d ", aux->info);
+        aux = aux->prox;
+    }
+    printf("\n");
+
+}
+Nod* remove_inicio_listad(Listad *L)
+{
+    Nod* aux = NULL;
+    if (L != NULL && L->fim != NULL) //caso haja elemento
+    {
+        aux = L->ini;
+        if (L->ini == L->fim)
+        {   
+            L->ini = L->fim = NULL;
+        }
+        else
+        {
+            L->ini = L->ini->prox;
+            L->ini->ant = NULL;
+        }
+    }
+    return aux;
+}
+
+Nod* remove_fim_listad(Listad *L)
+{
+    Nod* aux = NULL;
+    if (L != NULL && L->fim != NULL) //caso haja elemento
+    {
+        aux = L->fim;
+        if (L->ini == L->fim)
+        {   
+            L->ini = L->fim = NULL;
+        }
+        else
+        {
+            L->fim = L->fim->ant;
+            L->fim->prox = NULL;
+        }
+    }
+    return aux;
+}
+// Funções de lista simplesmente encadeada:
+
+No *cria_no(int valor)
+{
+    No *novo = malloc(sizeof(No));
+    novo->info = valor;
+    novo->prox = NULL;
+    return novo;
+}
+
+No *insere_inicio(No *inicio, int valor)
+{
+    No *novo = cria_no(valor);
+    if (inicio == NULL)
+        inicio = novo;
+    else
+    {
+        novo->prox = inicio;
+        inicio = novo;
+    }
+    return inicio;
+}
+
+No *insere_fim(No *L, int valor)
+{
+    No *novo = cria_no(valor);
+    No *aux = L;
+
+    if (L == NULL)
+        L = novo;
+    else
+    {
+        while (aux->prox != NULL)
+            aux = aux->prox;
+        aux->prox = novo;
+    }
+    return L;
+}
+
+No *remove_elemento(No **end_L, int elemento)
+{
+    No *aux, *anterior = NULL, *resposta = NULL;
+    if (*end_L != NULL)
+    {
+        aux = *end_L;
+        while (aux != NULL && aux->info != elemento)
+        {
+            anterior = aux;
+            aux = aux->prox;
+        }
+        if (aux != NULL)
+        {
+            if (*end_L != aux)
+                anterior->prox = aux->prox;
+            else
+                *end_L = aux->prox;
+        }
+        resposta = aux;
+    }
+    return resposta;
+}
+
+void mostra_lista(No *L)
+{
+    while (L != NULL)
+    {
+        printf("%d ", L->info);
+        L = L->prox;
+    }
+}
+
+No *libera_lista(No *L)
+{
+    No *aux = L;
+    while (aux != NULL)
+    {
+        L = L->prox;
+        free(aux);
+        aux = L;
+    }
+    return NULL;
+}
+
+No *busca_elemento(No *L, int elemento)
+{
+    while (L != NULL && elemento != L->info)
+        L = L->prox;
+    return L;
+}
+// chamada: remove_inicio(&L)
+No *remove_inicio(No **L)
+{
+    No *rem = NULL;
+    if (*L == NULL)
+        return NULL;
+    else
+    {
+        rem = *L;
+        *L = (*L)->prox;
+        rem->prox = NULL;
+        return rem;
+    }
+}
+No *remove_fim(No **L)
+{
+    No *rem = NULL;
+    No *ant;
+    if (*L == NULL)
+        return NULL;
+    else
+    {
+        rem = *L;
+        while (rem->prox != NULL)
+        {
+            ant = rem;
+            rem = rem->prox;
+        }
+        ant->prox = NULL;
+        return rem;
+    }
+}
+int main ()
+{
+    int valor =0;
+    int cont =0;
+    int info =0;
+    int num =0;
+    No*aux1 =NULL;
+    Nod*aux2 = NULL;
+    char operacao[1000];
+    No* L_simp =NULL;
+    Listad* L_dupla= NULL;
+    L_dupla = cria_listad();
+    scanf("%i",&valor);
+    while(cont<valor)
+    {
+        scanf("%i",&info);
+        scanf("%s",operacao);
+        scanf("%i",&num);
+        aux1 = L_simp;
+        while(aux1  != NULL && aux1->info != info)//PROCURANDO VALOR
+        {
+            aux1=aux1->prox;
+        }
+        if(aux1==NULL)// SE PERCORREU A LISTA TODA, INSERE NO FINAL
+        {
+            L_simp = insere_fim(L_simp,info);  
+            L_dupla = insere_fim_listad(L_dupla,num);
+            if(strcmp(operacao,"adicionar") == 0)
+            {
+                aux1=L_simp;
+                aux2=L_dupla->ini;
+                while(aux1!=NULL && aux1->info != info)//PROCURANDO VALOR PARA REMOVER
+                {
+                    aux1=aux1->prox;
+                    aux2=aux2->prox;
+                }
+                if(aux1->info == info )
+                {
+                    aux2->info = aux2->info;
+                }
+            }
+            if(strcmp(operacao,"remover") == 0)
+            {
+                L_simp = insere_fim(L_simp,info);  
+                L_dupla = insere_fim_listad(L_dupla,num);
+                aux1=L_simp;
+                aux2=L_dupla->ini;
+                while(aux1!=NULL && aux1->info != info)//PROCURANDO VALOR PARA REMOVER
+                {
+                    aux1=aux1->prox;
+                    aux2=aux2->prox;
+                } 
+                if(aux1->info == info )
+                {
+                    aux2->info = aux2->info;
+                }
+            }
+        }
+        else
+        {
+            if(strcmp(operacao,"adicionar")==0)
+            {
+                aux1=L_simp;
+                aux2=L_dupla->ini;
+                while(aux1!=NULL && aux1->info != info)//PROCURANDO VALOR PARA ADICIONAR 
+                {
+                    
+                    aux1=aux1->prox;
+                    aux2=aux2->prox;
+                }
+                if(aux1->info == info )
+                {
+                    aux2->info = aux2->info + num;
+                }
+            }
+            if(strcmp(operacao,"remover") == 0)
+            {
+                aux1=L_simp;
+                aux2=L_dupla->ini;
+                while(aux1!=NULL && aux1->info != info)//PROCURANDO VALOR PARA ADICIONAR 
+                {
+                    aux1=aux1->prox;
+                    aux2=aux2->prox;
+                } 
+                if(aux1->info == info )
+                {
+                    aux2->info = aux2->info - num;
+                }
+            }
+        }
+        cont++;
+    }
+    aux1= L_simp;
+    aux2 = L_dupla->ini;
+    while(aux1!=NULL)
+    {
+        if(aux2->info != 0)
+        {
+            printf("%i",aux1->info);
+            printf(" %i\n",aux2->info);  
+        }
+        aux1=aux1->prox;
+        aux2=aux2->prox;
+    }
+    return 0;
+}
