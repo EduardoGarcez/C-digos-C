@@ -1,0 +1,226 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct nod
+
+{
+
+    int info;
+    struct nod *ant, *prox;
+
+};
+
+typedef struct nod Nod;
+struct listad
+
+{
+
+    Nod* ini;
+    Nod* fim;
+
+};
+typedef struct listad Listad;
+Listad *cria_listad()
+{
+
+    Listad *L = (Listad *)malloc(sizeof(Listad));
+    L->fim = L->ini = NULL;
+    return L;
+}
+
+Nod *cria_nod(int info)
+{
+    Nod *novo = (Nod *)malloc(sizeof(Nod));
+    novo->ant = novo->prox = NULL;
+    novo->info = info;
+    return novo;
+}
+Listad* insere_fim_listad(Listad *L, int info)
+{
+    Nod *novo = cria_nod(info);
+
+    if (L == NULL)
+    {
+        L = cria_listad();
+        L->ini = L->fim = novo;
+    }
+    else
+    {
+        if (L->ini == NULL)
+            L->ini = L->fim = novo;
+        else
+        {
+            novo->ant = L->fim;
+            L->fim->prox = novo;
+            L->fim = novo;
+        }
+    }
+    return L;
+}
+Nod *remove_inicio_listad(Listad *L)
+{
+    Nod* aux = NULL;
+    if (L != NULL && L->fim != NULL) //caso haja elemento
+    {
+        aux = L->ini;
+        if (L->ini == L->fim)
+        {   
+            L->ini = L->fim = NULL;
+        }
+        else
+        {
+            L->ini = L->ini->prox;
+            L->ini->ant = NULL;
+        }
+    }
+    if(L==NULL)
+    {
+        aux->info=0;
+    }
+    return aux;
+}
+Listad* insere_inicio_listad(Listad *L, int info)
+{
+    Nod *novo = cria_nod(info);
+
+    if (L == NULL)
+    {
+        L = cria_listad();
+        L->ini = L->fim = novo;
+    }
+    else
+    {
+        if (L->ini == NULL)
+            L->ini = L->fim = novo;
+        else
+        {
+            novo->prox = L->ini;
+            L->ini->ant = novo;
+            L->ini = novo;
+        }
+    }
+    return L;
+}
+Listad* funcao_back(Listad* L)
+{
+    if(L->ini!=NULL)
+    {
+        Nod*aux = remove_inicio_listad(L);
+        Listad*L2 =NULL;
+        L2=cria_listad();
+        while(aux!=NULL)
+        {
+            L2 = insere_fim_listad(L2,aux->info);
+            aux = remove_inicio_listad(L);
+        }
+        aux = remove_inicio_listad(L2);
+        printf("%i\n",aux->info);
+        while(aux!=NULL)
+        {
+            L = insere_fim_listad(L,aux->info);
+            aux = remove_inicio_listad(L2); 
+        }
+    }
+    else
+    {
+
+    }  
+    return L;
+}
+Listad *funcao_tofront(Listad*L,int valor)
+{
+    Listad*L2=NULL;
+    L2=cria_listad();
+    Nod*aux=NULL;
+    insere_fim_listad(L2,valor);
+    aux = remove_inicio_listad(L);
+    while(aux!=NULL)//REMOVER TODOS OS ELEMENTOS DA LISTA ORIGINAL
+    {
+        insere_fim_listad(L2,aux->info);
+        aux = remove_inicio_listad(L);
+    }
+    aux = remove_inicio_listad(L2);
+    while(aux!=NULL)//REMOVER TODOS OS ELEMENTOS E PASSAR PARA A LISTA ORIGINAL
+    {
+        insere_fim_listad(L,aux->info);
+        aux = remove_inicio_listad(L2);
+    }
+    return L;
+}
+Listad *funcao_reverse(Listad*L)
+{
+    Listad*L2=NULL;
+    L2=cria_listad();
+    Nod*aux=NULL;
+    aux = remove_inicio_listad(L);
+    L2 = insere_inicio_listad(L2,aux->info);
+    while(aux!=NULL)
+    {
+        aux = remove_inicio_listad(L);
+        L2 = insere_inicio_listad(L2,aux->info);
+    }
+    aux = remove_inicio_listad(L2);
+    L = insere_fim_listad(L,aux->info);
+    while(aux!=NULL)
+    {
+        aux = remove_inicio_listad(L2);
+        L = insere_fim_listad(L,aux->info); 
+    }
+    return L;
+}
+int main ()
+{
+    Listad* L=NULL;
+    L=cria_listad();
+    Nod* aux=NULL;
+    char palavra[100];
+    long long int valor=0;
+    int n=0;
+    int cont =0;
+    scanf("%lld",&valor);
+    while(cont<=valor)
+    {
+        getchar();
+        scanf("%s",palavra);
+        if(strcmp(palavra,"push_back")==0)
+        {
+            scanf("%i\n",&n);
+            L = insere_fim_listad(L,n);
+        }
+        else if(strcmp(palavra,"front")==0)
+        {
+            aux = remove_inicio_listad(L);
+            if(aux!=NULL)
+            {
+                printf("%i\n",aux->info);
+            }
+            else
+            {
+                printf("sem trabalho para Ada?\n");
+            }
+        }
+        else if(strcmp(palavra,"back")==0)
+        {
+            if(L->ini!=NULL)
+            {
+                L = funcao_back(L);
+            }
+            else
+            {
+                printf("sem trabalho para Ada?\n");
+            }
+        }
+        else if(strcmp(palavra,"toFront")==0)
+        {
+            scanf("%i",&n);
+            L=funcao_tofront(L,n);
+        }
+        else if(strcmp(palavra,"reverse")==0)
+        {
+            if(L->ini !=NULL)
+            L = funcao_reverse(L);
+        }
+        cont++;
+    }
+    return 0;
+}
