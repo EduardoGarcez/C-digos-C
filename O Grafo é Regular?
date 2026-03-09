@@ -1,0 +1,66 @@
+/*
+A primeira linha de cada caso de teste contém o número de vértices N do grafo (entre 0 e 102).
+
+Considere que os vértices são numerados de 0 a N-1.
+
+Seguem-se N linhas, cada uma com N valores (entre -1 e 105)  que representam os pesos das arestas.
+
+Dado o i-esimo valor da j-esima linha, ele representa que o peso da aresta entre os vertices i e j, sendo que o valor -1 a indicação de inexistência da aresta.
+
+*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+#include <stdlib.h>
+
+ int main()
+ {
+    int matriz[100][100];
+
+    int tam =0 ;
+    int num =0;
+    int j=0;
+    scanf("%i",&tam);
+
+    //LER MATRIZ
+    for(int i=0; i<tam; i++)
+    {
+        for(j=0;j<tam;j++)
+        {
+            scanf("%i",&num);
+            matriz[i][j]= num; 
+        }
+            
+    }
+    int cont =0;
+    int cont_Aux=0;
+    int resp =1;
+
+    //VERIFICAR MATRIZ SE É COMPLETA
+    for(int i=0 ;i<tam; i++)
+    {
+        cont =0;
+        for(int j = 0;j<tam;j++)
+        {
+            if(matriz[i][j]!=-1)
+                cont++;
+        }
+        if(i == 0)
+            cont_Aux = cont;
+        else
+        {
+            if(cont_Aux == cont)
+                cont_Aux = cont;
+            else
+            {
+                resp = - 1;
+                i =tam + 1;
+            }
+        }
+    }
+    if(resp == -1 )
+        printf("\nnao");
+    else
+        printf("\nsim");
+    return 0;
+ }
