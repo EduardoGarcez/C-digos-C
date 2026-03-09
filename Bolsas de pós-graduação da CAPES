@@ -1,0 +1,195 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct ies{//STRUCT IES
+    int ano;
+    char sigla_uf[100];
+    char rg[100];
+    char sigla_ies[100];
+    char natureza_juri[100];
+};
+typedef struct ies Ies;
+struct curso{
+    char area_ppg [100];
+    char bolsa[100];
+    int num_bolsa;
+};
+typedef struct curso Curso;
+void funcao_preencher_ies(Ies vet[], int i)
+{
+    //LEITURA IES
+    scanf("%i",&vet[i].ano);
+    scanf("%s",vet[i].sigla_uf);
+    //printf("\nRegiao: ");
+    scanf("%s",vet[i].rg);
+    //printf("\nSigla: ");
+    scanf("%s",vet[i].sigla_ies);
+    scanf("%s",vet[i].natureza_juri);
+}
+void funcao_preencher_curso(Curso vet[],int i)
+{
+    //printf("\nArea: ");
+    scanf("%s",vet[i].area_ppg);
+    scanf("%s",vet[i].bolsa);
+    //printf("\nNumero bolsa: ");
+    scanf("%i",&vet[i].num_bolsa);
+}
+int funcao_contar(Ies vet1[],Curso vet2[],int tam,char aux[],int j,char sigla[],int *desempate)
+{
+    int i =0;
+    int total=0;
+    int res=0;
+    strcpy(sigla,aux);
+    while(i<tam)
+    {
+        res = strcmp(aux,vet1[i].sigla_ies);
+        if(res == 0)
+        {
+            total = total + vet2[i].num_bolsa;
+            *desempate = *desempate + 1;
+
+        }
+        i++;
+    }
+    return total;
+}
+void funcao_num_bolsa(Ies vet1[], Curso vet2[],int tam)
+
+{
+    char aux[300][100];
+    int i=0;
+    int j=0;
+    int k=0;
+    int res=1;
+    int total=0;
+    int aux_total=0;
+    char sigla[300];
+    strcpy(sigla,"");
+    char sigla_aux[300];
+    strcpy(sigla_aux,"");
+    int desempate1=0;
+    int desempate2=0;
+    while(i<tam)//LAÇO PRINCIPAL
+    {
+        aux_total =total;//receber o valor de total para achar maior numero de bolsas
+        strcpy(sigla_aux,sigla);//receber outras siglas e fazer a comparacao
+        desempate2 = desempate1;
+        while(j<k || res == 0)//CASO GERAL
+        {
+            res = strcmp(aux[j],vet1[i].sigla_ies);//SE RES FOR IGUAL A ZERO, JA ENCONTROU ESTA SIGLA(SAI DO LAÇO)
+            if(j==k)
+            {
+                total=funcao_contar(vet1,vet2,tam,aux[j],j,sigla,&desempate1);
+
+            }
+            j++;
+        }
+        if(k==j)//CASO FOR A PRIMEIRA COMPARACAO
+        {
+            strcpy(aux[j],vet1[i].sigla_ies);
+            total = funcao_contar(vet1,vet2,tam,aux[j],j,sigla,&desempate1);
+        }
+        if(aux_total>total)//verificar maior numero de bolsas e substituir a sigla
+        {
+            total = aux_total;
+            strcpy(sigla,sigla_aux);
+
+        }
+        if(aux_total == total)
+        {
+            if(desempate2 > desempate1)
+            {
+                total = aux_total;
+                strcpy(sigla,sigla_aux);
+            }
+        }
+        k++;//AUMENTAR VETOR DE COMPARACAO DAS SIGLAS
+        j=0;//RESETANDO VETOR DE COMPARACAO
+        i++;//VETOR NORMAL
+        res = 1;
+    }
+    printf("IES com maior numero de bolsas: %s\n",sigla);//SAIDA
+}
+void funcao_calcular_regiao(Ies vet1[], Curso vet2[], int tam)
+{
+    int i =0;
+    //BOLSAS DAS REGIOES
+    int total_centro=0;
+    int total_nordeste =0;
+    int total_norte =0;
+    int total_sudeste=0;
+    int total_sul=0;
+    
+    while(i<tam)
+    {
+        
+        if(strcmp(vet1[i].rg,"CENTRO-OESTE")==0)
+        {
+            total_centro = total_centro + vet2[i].num_bolsa;
+            
+        }
+        if(strcmp(vet1[i].rg,"NORDESTE")==0)
+        {
+            total_nordeste = total_nordeste + vet2[i].num_bolsa;
+  
+        }
+        if(strcmp(vet1[i].rg,"NORTE")==0)
+        {
+            total_norte = total_norte + vet2[i].num_bolsa;
+            
+        }
+        if(strcmp(vet1[i].rg,"SUDESTE")==0)
+        {
+            total_sudeste = total_sudeste + vet2[i].num_bolsa;
+
+        }
+        if(strcmp(vet1[i].rg,"SUL")==0)
+        {
+            total_sul = total_sul + vet2[i].num_bolsa;
+
+        }
+        i++;
+    }
+    if(total_centro!=0)
+    {
+        printf("CENTRO-OESTE: %i\n",total_centro);
+    }
+    if(total_nordeste!=0)
+    {
+        printf("NORDESTE: %i\n",total_nordeste);
+    }
+    if(total_norte!=0)
+    {
+        printf("NORTE: %i\n",total_norte);
+    }
+    if(total_sudeste!=0)
+    {
+        printf("SUDESTE: %i\n",total_sudeste);
+    }
+    if(total_sul!=0)
+    {
+        printf("SUL: %i\n",total_sul);
+    }
+}
+int main()
+{
+    int qnt =0;
+    int cont =0;
+    int i=0;
+    int total=0;
+    Ies vet_ies[3000];
+    Curso vet_curso[3000];
+    scanf("%i",&qnt);
+    while(cont<qnt)
+    {
+        funcao_preencher_ies(vet_ies,i);
+
+        funcao_preencher_curso(vet_curso,i);
+        i++;
+        cont++;
+    }
+    funcao_num_bolsa(vet_ies,vet_curso,qnt);
+    funcao_calcular_regiao(vet_ies,vet_curso,qnt);
+    return 0;
+}
